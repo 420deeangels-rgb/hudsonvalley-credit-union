@@ -26,8 +26,318 @@ import {
   Download,
   AlertCircle,
   CheckCircle,
-  Headphones
+  Headphones,
+  ChevronDown,
+  Check,
+  RotateCcw
 } from 'lucide-react';
+
+// ==========================================
+// CUSTOM ACCOUNT SELECT COMPONENT
+// ==========================================
+function AccountSelect({ label, accounts, value, onChange, formatCurrency }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  const selectedAccount = accounts.find(a => a.accountNumber === value);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  return (
+    <div className="space-y-1.5 relative" ref={containerRef}>
+      {label && (
+        <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          {label}
+        </label>
+      )}
+      <button
+        type="button"
+        onClick={() => setIsOpen(prev => !prev)}
+        className={`w-full bg-slate-50 hover:bg-slate-100/80 border ${
+          isOpen ? 'border-indigo-500 ring-2 ring-indigo-500/15' : 'border-slate-200'
+        } rounded-xl px-3.5 py-2.5 text-left transition-all duration-150 flex items-center justify-between cursor-pointer focus:outline-none`}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+      >
+        {selectedAccount ? (
+          <div className="flex items-center gap-3 min-w-0 pr-2">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${selectedAccount.iconBg}`}>
+              {selectedAccount.icon && <selectedAccount.icon className="w-4 h-4" />}
+            </div>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-slate-900 truncate">
+                {selectedAccount.name}
+              </div>
+              <div className="text-xs text-slate-400 font-mono truncate">
+                {selectedAccount.type} ({selectedAccount.accountNumber})
+              </div>
+            </div>
+          </div>
+        ) : (
+          <span className="text-sm text-slate-400">Select an account</span>
+        )}
+        <div className="flex items-center gap-2 shrink-0">
+          <ChevronDown
+            className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+              isOpen ? 'rotate-180 text-indigo-600' : ''
+            }`}
+          />
+        </div>
+      </button>
+
+      {isOpen && (
+        <div
+          role="listbox"
+          className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-slate-200/90 rounded-2xl shadow-xl shadow-slate-900/10 p-1.5 space-y-1 max-h-64 overflow-y-auto"
+        >
+          {accounts.map(acc => {
+            const isSelected = acc.accountNumber === value;
+            const IconComp = acc.icon;
+            return (
+              <div
+                key={acc.id}
+                role="option"
+                aria-selected={isSelected}
+                onClick={() => {
+                  onChange(acc.accountNumber);
+                  setIsOpen(false);
+                }}
+                className={`w-full flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-colors ${
+                  isSelected
+                    ? 'bg-indigo-50/90 text-indigo-950 font-medium'
+                    : 'hover:bg-slate-50 text-slate-800'
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${acc.iconBg}`}>
+                    {IconComp && <IconComp className="w-4 h-4" />}
+                  </div>
+                  <div className="min-w-0">
+                    <p className={`text-xs sm:text-sm font-semibold truncate ${isSelected ? 'text-indigo-900' : 'text-slate-900'}`}>
+                      {acc.name}
+                    </p>
+                    <p className="text-[11px] text-slate-400 font-mono truncate">
+                      {acc.type} • {acc.accountNumber}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-right shrink-0 pl-3 flex items-center gap-2.5">
+                  <div className="text-right">
+                    <span className="text-xs font-semibold text-slate-800 block">
+                      {formatCurrency ? formatCurrency(acc.balance) : `$${acc.balance.toLocaleString()}`}
+                    </span>
+                    <span className="text-[10px] text-slate-400 block">Available</span>
+                  </div>
+                  {isSelected && <Check className="w-4 h-4 text-indigo-600 shrink-0" />}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ==========================================
+// CUSTOM GENERIC SELECT COMPONENT
+// ==========================================
+function CustomSelect({ label, value, onChange, options }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  return (
+    <div className="space-y-1.5 relative" ref={containerRef}>
+      {label && (
+        <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          {label}
+        </label>
+      )}
+      <button
+        type="button"
+        onClick={() => setIsOpen(prev => !prev)}
+        className={`w-full bg-slate-50 hover:bg-slate-100/80 border ${
+          isOpen ? 'border-indigo-500 ring-2 ring-indigo-500/15' : 'border-slate-200'
+        } rounded-xl px-3.5 py-3 text-left transition-all duration-150 flex items-center justify-between cursor-pointer focus:outline-none`}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+      >
+        <span className="text-sm font-medium text-slate-800">{value}</span>
+        <ChevronDown
+          className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+            isOpen ? 'rotate-180 text-indigo-600' : ''
+          }`}
+        />
+      </button>
+
+      {isOpen && (
+        <div
+          role="listbox"
+          className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-slate-200/90 rounded-2xl shadow-xl shadow-slate-900/10 p-1.5 space-y-1 max-h-60 overflow-y-auto"
+        >
+          {options.map(opt => {
+            const isSelected = opt === value;
+            return (
+              <div
+                key={opt}
+                role="option"
+                aria-selected={isSelected}
+                onClick={() => {
+                  onChange(opt);
+                  setIsOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer text-sm transition-colors ${
+                  isSelected
+                    ? 'bg-indigo-50 text-indigo-900 font-semibold'
+                    : 'hover:bg-slate-50 text-slate-700'
+                }`}
+              >
+                <span>{opt}</span>
+                {isSelected && <Check className="w-4 h-4 text-indigo-600 shrink-0" />}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ==========================================
+// SUPPORT PAGE (DEFINED OUTSIDE APP FOR HOOK STABILITY)
+// ==========================================
+function SupportPage({ showToast }) {
+  const [localForm, setLocalForm] = useState({ subject: '', message: '', category: 'Account Inquiry' });
+  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setTimeout(() => { setSubmitting(false); setSubmitted(true); showToast('Your message has been submitted. A specialist will respond within 24h.'); }, 1000);
+  };
+  return (
+    <div className="space-y-8">
+      <div className="space-y-1">
+        <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">Support Center</h1>
+        <p className="text-sm text-slate-500">Get help from your dedicated private wealth team.</p>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Contact Form */}
+        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200/80 shadow-sm p-6 space-y-6">
+          <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center"><MessageSquare className="w-5 h-5 text-indigo-600" /></div>
+            <div><h2 className="text-base font-semibold text-slate-900">Send a Message</h2><p className="text-xs text-slate-400">Our specialists respond within 2–24 business hours</p></div>
+          </div>
+          {submitted ? (
+            <div className="py-10 flex flex-col items-center gap-4 text-center">
+              <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center"><CheckCircle className="w-8 h-8 text-emerald-600" /></div>
+              <div>
+                <p className="text-lg font-bold text-slate-900">Message Submitted</p>
+                <p className="text-sm text-slate-500 mt-1">A private wealth specialist will respond within 24 hours.</p>
+                <p className="text-xs text-slate-400 mt-3">Reference: <span className="font-mono text-slate-600">SR-{Date.now().toString().slice(-6)}</span></p>
+              </div>
+              <button onClick={() => setSubmitted(false)} className="mt-2 px-6 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-full hover:bg-slate-800 transition-colors cursor-pointer">Submit Another Request</button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <CustomSelect
+                label="Category"
+                value={localForm.category}
+                onChange={(val) => setLocalForm({ ...localForm, category: val })}
+                options={['Account Inquiry', 'Wire Transfer Issue', 'Card Services', 'Investment Question', 'Security Concern', 'Other']}
+              />
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Subject</label>
+                <input type="text" required placeholder="Brief description of your issue..." value={localForm.subject} onChange={(e) => setLocalForm({ ...localForm, subject: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-sm text-slate-800 focus:outline-none focus:border-indigo-400 transition-colors"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Message</label>
+                <textarea required rows={5} placeholder="Describe your concern in detail..." value={localForm.message} onChange={(e) => setLocalForm({ ...localForm, message: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-sm text-slate-800 focus:outline-none focus:border-indigo-400 transition-colors resize-none"
+                />
+              </div>
+              <button type="submit" disabled={submitting} className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm rounded-full transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm disabled:opacity-70">
+                {submitting ? (<><RefreshCw className="w-4 h-4 animate-spin" /><span>Sending...</span></>) : (<><Send className="w-4 h-4" /><span>Send Message</span></>)}
+              </button>
+            </form>
+          )}
+        </div>
+        {/* Sidebar */}
+        <div className="space-y-4">
+          <h3 className="text-sm font-semibold text-slate-700 px-1">Contact Channels</h3>
+          {[
+            { icon: Phone, label: 'Private Client Line', value: '1-800-HV-WEALTH', sub: 'Mon–Fri, 8AM–8PM EST', color: 'bg-emerald-50 text-emerald-600' },
+            { icon: Mail, label: 'Secure Email', value: 'wealth@hudsonvalley.com', sub: 'Response within 24h', color: 'bg-indigo-50 text-indigo-600' },
+            { icon: Headphones, label: 'Priority Support', value: 'Premier Member', sub: 'Dedicated advisor line', color: 'bg-purple-50 text-purple-600' },
+          ].map((c, i) => {
+            const IconComp = c.icon;
+            return (
+              <div key={i} className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-sm flex items-start gap-4">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${c.color}`}><IconComp className="w-5 h-5" /></div>
+                <div className="min-w-0">
+                  <p className="text-xs text-slate-500">{c.label}</p>
+                  <p className="text-sm font-semibold text-slate-900 truncate">{c.value}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">{c.sub}</p>
+                </div>
+              </div>
+            );
+          })}
+          <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-4 space-y-3">
+            <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wide">Quick Links</h4>
+            {['Report a lost card', 'Dispute a transaction', 'Update contact info', 'Security settings'].map((item, i) => (
+              <button key={i} onClick={() => showToast(`Opening: ${item}...`)} className="w-full flex items-center justify-between text-xs text-slate-600 hover:text-indigo-600 py-1.5 transition-colors cursor-pointer">
+                <span>{item}</span><ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            ))}
+          </div>
+          <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 space-y-1.5">
+            <div className="flex items-center gap-2 text-amber-700"><AlertCircle className="w-4 h-4" /><span className="text-xs font-semibold">Emergency?</span></div>
+            <p className="text-xs text-amber-600/80 leading-relaxed">For lost/stolen cards or urgent security issues, call <strong>1-800-HV-URGENT</strong> available 24/7.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   // Authentication State
@@ -46,7 +356,9 @@ export default function App() {
   const [toastMessage, setToastMessage] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [txFilterCategory, setTxFilterCategory] = useState('All');
-  const [transferSuccess, setTransferSuccess] = useState(false);
+  const [transferState, setTransferState] = useState('idle'); // 'idle' | 'pending' | 'settled'
+  const [pendingTransfer, setPendingTransfer] = useState(null);
+  const [transferStep, setTransferStep] = useState(1);
 
   // Refs for outside click handling
   const profileMenuRef = useRef(null);
@@ -121,16 +433,16 @@ export default function App() {
 
   // REAL LIFE RECENT ACTIVITIES
   const [transactions, setTransactions] = useState([
-    { id: 'tx-1', title: 'J.P. Morgan Treasury Wire Credit', accountNumber: '6524418305', amount: 1000000.00, type: 'inflow', date: 'Today, 14:20', category: 'Wire Transfer' },
-    { id: 'tx-2', title: 'Vanguard S&P 500 Index Dividend (VOO)', accountNumber: '8243434176', amount: 23445.00, type: 'inflow', date: 'Yesterday, 09:45', category: 'Dividend' },
-    { id: 'tx-3', title: 'BlackRock Total Market Fund Rebalance', accountNumber: '8243434176', amount: 200000.00, type: 'outflow', date: 'Sep 15, 2026', category: 'Investment' },
-    { id: 'tx-4', title: 'Hudson Valley Tax Reserve Allocation', accountNumber: '2536748930', amount: 200000.00, type: 'outflow', date: 'Sep 14, 2026', category: 'Transfer' },
-    { id: 'tx-5', title: 'ConEdison Executive Utility Auto-Pay', accountNumber: '2536748930', amount: 3445.00, type: 'outflow', date: 'Sep 12, 2026', category: 'Utilities' },
-    { id: 'tx-6', title: 'High-Yield Treasury Monthly Interest', accountNumber: '6524418305', amount: 4747.92, type: 'inflow', date: 'Sep 01, 2026', category: 'Interest' },
-    { id: 'tx-7', title: 'Amex Centurion Monthly Auto-Settle', accountNumber: '2536748930', amount: 12850.40, type: 'outflow', date: 'Aug 28, 2026', category: 'Credit Card' },
-    { id: 'tx-8', title: 'Goldman Sachs Private Fund Distribution', accountNumber: '8243434176', amount: 45000.00, type: 'inflow', date: 'Aug 22, 2026', category: 'Dividend' },
-    { id: 'tx-9', title: 'Internal Transfer — Checking to Savings', accountNumber: '2536748930', amount: 50000.00, type: 'outflow', date: 'Aug 18, 2026', category: 'Transfer' },
-    { id: 'tx-10', title: 'Apple Wealth Management Advisory Fee', accountNumber: '8243434176', amount: 2800.00, type: 'outflow', date: 'Aug 10, 2026', category: 'Fees' },
+    { id: 'tx-1', title: 'J.P. Morgan Treasury Wire Credit', accountNumber: '6524418305', amount: 1000000.00, type: 'inflow', date: 'Today, 14:20', category: 'Wire Transfer', status: 'cleared' },
+    { id: 'tx-2', title: 'Vanguard S&P 500 Index Dividend (VOO)', accountNumber: '8243434176', amount: 23445.00, type: 'inflow', date: 'Yesterday, 09:45', category: 'Dividend', status: 'cleared' },
+    { id: 'tx-3', title: 'BlackRock Total Market Fund Rebalance', accountNumber: '8243434176', amount: 200000.00, type: 'outflow', date: 'Sep 15, 2026', category: 'Investment', status: 'cleared' },
+    { id: 'tx-4', title: 'Hudson Valley Tax Reserve Allocation', accountNumber: '2536748930', amount: 200000.00, type: 'outflow', date: 'Sep 14, 2026', category: 'Transfer', status: 'cleared' },
+    { id: 'tx-5', title: 'ConEdison Executive Utility Auto-Pay', accountNumber: '2536748930', amount: 3445.00, type: 'outflow', date: 'Sep 12, 2026', category: 'Utilities', status: 'cleared' },
+    { id: 'tx-6', title: 'High-Yield Treasury Monthly Interest', accountNumber: '6524418305', amount: 4747.92, type: 'inflow', date: 'Sep 01, 2026', category: 'Interest', status: 'cleared' },
+    { id: 'tx-7', title: 'Amex Centurion Monthly Auto-Settle', accountNumber: '2536748930', amount: 12850.40, type: 'outflow', date: 'Aug 28, 2026', category: 'Credit Card', status: 'cleared' },
+    { id: 'tx-8', title: 'Goldman Sachs Private Fund Distribution', accountNumber: '8243434176', amount: 45000.00, type: 'inflow', date: 'Aug 22, 2026', category: 'Dividend', status: 'cleared' },
+    { id: 'tx-9', title: 'Internal Transfer — Checking to Savings', accountNumber: '2536748930', amount: 50000.00, type: 'outflow', date: 'Aug 18, 2026', category: 'Transfer', status: 'cleared' },
+    { id: 'tx-10', title: 'Apple Wealth Management Advisory Fee', accountNumber: '8243434176', amount: 2800.00, type: 'outflow', date: 'Aug 10, 2026', category: 'Fees', status: 'cleared' },
   ]);
 
   const txCategories = ['All', ...Array.from(new Set(transactions.map(t => t.category)))];
@@ -169,28 +481,93 @@ export default function App() {
     }, 900);
   };
 
-  // Transfer Handler
+  // Reverse a transaction handler (refunds balances and removes transaction)
+  const handleReverseTransaction = (txToReverse) => {
+    if (!txToReverse) return;
+    
+    const amount = Number(txToReverse.amount);
+    if (!isNaN(amount) && amount > 0) {
+      setAccounts(prev => prev.map(acc => {
+        // Refund back to sender account
+        if (acc.accountNumber === txToReverse.accountNumber) {
+          return { ...acc, balance: acc.balance + amount };
+        }
+        // Deduct back from destination account (if known, or find other account)
+        if (txToReverse.toAccountNumber && acc.accountNumber === txToReverse.toAccountNumber) {
+          return { ...acc, balance: Math.max(0, acc.balance - amount) };
+        }
+        return acc;
+      }));
+    }
+
+    // Remove this transaction from state
+    setTransactions(prev => prev.filter(t => t.id !== txToReverse.id));
+    
+    // If it's currently on screen as pendingTransfer, reset transferState
+    if (pendingTransfer && pendingTransfer.id === txToReverse.id) {
+      setTransferState('idle');
+      setPendingTransfer(null);
+    }
+    
+    setSelectedTransaction(null);
+    showToast(`Transaction of $${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })} USD has been reversed. Balances restored.`);
+  };
+
+  // Transfer Handler with permanent Transaction Pending state (never auto-clears)
   const handleTransferSubmit = (e) => {
     e.preventDefault();
     const amountNum = parseFloat(transferForm.amount);
-    if (isNaN(amountNum) || amountNum <= 0) return;
-    if (transferForm.fromAccount === transferForm.toAccount) { showToast('From and To accounts must be different.'); return; }
+    if (isNaN(amountNum) || amountNum <= 0) {
+      showToast('Please enter a valid transfer amount.');
+      return;
+    }
+    if (transferForm.fromAccount === transferForm.toAccount) {
+      showToast('From and To accounts must be different.');
+      return;
+    }
     const fromAcc = accounts.find(a => a.accountNumber === transferForm.fromAccount);
-    if (fromAcc && amountNum > fromAcc.balance) { showToast('Insufficient funds in selected account.'); return; }
-    setIsSubmittingTransfer(true);
-    setTimeout(() => {
-      setAccounts(prev => prev.map(acc => {
-        if (acc.accountNumber === transferForm.fromAccount) return { ...acc, balance: acc.balance - amountNum };
-        if (acc.accountNumber === transferForm.toAccount) return { ...acc, balance: acc.balance + amountNum };
-        return acc;
-      }));
-      const newTx = { id: `tx-${Date.now()}`, title: `Internal Transfer (${transferForm.memo || 'Transfer'})`, accountNumber: transferForm.fromAccount, amount: amountNum, type: 'outflow', date: 'Just now', category: 'Transfer' };
-      setTransactions(prev => [newTx, ...prev]);
-      setIsSubmittingTransfer(false);
-      setTransferSuccess(true);
-      setTransferForm(f => ({ ...f, amount: '', memo: '' }));
-      showToast(`Transfer of $${amountNum.toLocaleString()} completed successfully.`);
-    }, 900);
+    const toAcc = accounts.find(a => a.accountNumber === transferForm.toAccount);
+    if (fromAcc && amountNum > fromAcc.balance) {
+      showToast('Insufficient funds in selected account.');
+      return;
+    }
+
+    const txId = `tx-${Date.now()}`;
+    const refId = `TX-HV-${Math.floor(100000 + Math.random() * 900000)}`;
+
+    const newTx = {
+      id: txId,
+      refId: refId,
+      title: `Internal Transfer (${transferForm.memo.trim() || 'Checking to Savings'})`,
+      accountNumber: transferForm.fromAccount,
+      toAccountNumber: transferForm.toAccount,
+      amount: amountNum,
+      type: 'outflow',
+      date: 'Just now',
+      category: 'Transfer',
+      status: 'pending', // ALWAYS stays pending
+      memo: transferForm.memo.trim() || 'Internal Account Transfer'
+    };
+
+    // Update account balances immediately
+    setAccounts(prev => prev.map(acc => {
+      if (acc.accountNumber === transferForm.fromAccount) return { ...acc, balance: acc.balance - amountNum };
+      if (acc.accountNumber === transferForm.toAccount) return { ...acc, balance: acc.balance + amountNum };
+      return acc;
+    }));
+
+    // Prepend pending transaction to activity
+    setTransactions(prev => [newTx, ...prev]);
+
+    // Store pending transfer info for UI display
+    setPendingTransfer({
+      ...newTx,
+      fromAccName: fromAcc?.name || 'Account',
+      toAccName: toAcc?.name || 'Account'
+    });
+    setTransferState('pending');
+    setTransferStep(2);
+    showToast(`Transfer of $${amountNum.toLocaleString(undefined, { minimumFractionDigits: 2 })} submitted: Status is Pending.`);
   };
 
   const filteredTransactions = transactions.filter(tx => {
@@ -370,7 +747,7 @@ export default function App() {
   // ==========================================
   // PAGE: TRANSFERS
   // ==========================================
-  const TransfersPage = () => (
+  const renderTransfersPage = () => (
     <div className="space-y-8">
       <div className="space-y-1">
         <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">Transfers</h1>
@@ -388,36 +765,139 @@ export default function App() {
               <p className="text-xs text-slate-400">Transfers are processed instantly between your accounts</p>
             </div>
           </div>
-          {transferSuccess ? (
-            <div className="py-10 flex flex-col items-center gap-4 text-center">
-              <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
-                <CheckCircle className="w-8 h-8 text-emerald-600" />
+          {transferState === 'pending' && pendingTransfer ? (
+            <div className="py-6 px-1 sm:px-4 space-y-6 animate-in fade-in duration-300">
+              {/* Header Status Badge */}
+              <div className="flex flex-col items-center text-center space-y-2">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200 shadow-xs">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+                  </span>
+                  Transaction Pending
+                </div>
+                <h3 className="text-xl font-bold text-slate-900">Transfer in Progress</h3>
+                <p className="text-xs text-slate-500 max-w-md">
+                  Your transfer of <span className="font-semibold text-slate-900">${pendingTransfer.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })} USD</span> is being processed across Hudson Valley Secure Clearing Protocol.
+                </p>
               </div>
-              <div>
-                <p className="text-lg font-bold text-slate-900">Transfer Successful</p>
-                <p className="text-sm text-slate-500 mt-1">Your funds have been moved successfully.</p>
+
+              {/* Multi-step progress pipeline */}
+              <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4">
+                <div className="flex items-center justify-between text-xs font-semibold text-slate-600 pb-2 border-b border-slate-200/60">
+                  <span>Clearing Pipeline</span>
+                  <span className="font-mono text-slate-500 font-normal">{pendingTransfer.refId}</span>
+                </div>
+
+                <div className="space-y-3.5">
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                      <CheckCircle2 className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-slate-800">Transfer Request Authorized</p>
+                        <span className="text-[10px] text-emerald-600 font-semibold">Completed</span>
+                      </div>
+                      <p className="text-[11px] text-slate-400">Authenticated via RSA 4096-bit banking gateway</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+                      <RefreshCw className="w-3.5 h-3.5 text-amber-600 animate-spin" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-slate-800">ACH Settlement & Compliance Clearance</p>
+                        <span className="text-[10px] font-semibold text-amber-600">
+                          Pending Authorization
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-400">Transaction pending interbank clearing verification</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-400 flex items-center justify-center shrink-0 mt-0.5">
+                      <Clock className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-slate-800">Final Ledger Balance Posting</p>
+                        <span className="text-[10px] text-slate-400 font-medium">
+                          Pending Clearing
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-400">Will credit recipient account once authorization clears</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <button
-                onClick={() => setTransferSuccess(false)}
-                className="mt-2 px-6 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-full hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                Make Another Transfer
-              </button>
+
+              {/* Transaction Summary Card */}
+              <div className="bg-white border border-slate-200/90 rounded-xl p-4 divide-y divide-slate-100 text-xs shadow-xs">
+                <div className="flex justify-between py-2">
+                  <span className="text-slate-500">From Account</span>
+                  <span className="font-semibold text-slate-800">{pendingTransfer.fromAccName} ({pendingTransfer.accountNumber})</span>
+                </div>
+                <div className="flex justify-between py-2">
+                  <span className="text-slate-500">To Account</span>
+                  <span className="font-semibold text-slate-800">{pendingTransfer.toAccName} ({pendingTransfer.toAccountNumber})</span>
+                </div>
+                <div className="flex justify-between py-2">
+                  <span className="text-slate-500">Amount</span>
+                  <span className="font-bold text-slate-900">${pendingTransfer.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })} USD</span>
+                </div>
+                <div className="flex justify-between py-2 items-center">
+                  <span className="text-slate-500">Status</span>
+                  <span className="inline-flex items-center gap-1.5 font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    Transaction Pending
+                  </span>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('Transactions')}
+                  className="flex-1 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs rounded-full transition-colors cursor-pointer text-center"
+                >
+                  View in Transactions Ledger →
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTransferState('idle');
+                    setTransferForm(f => ({ ...f, amount: '', memo: '' }));
+                  }}
+                  className="flex-1 py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-full transition-colors cursor-pointer text-center"
+                >
+                  Make Another Transfer
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleReverseTransaction(pendingTransfer)}
+                  className="py-3 px-4 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold text-xs rounded-full transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Reverse This Transfer
+                </button>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleTransferSubmit} className="space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">From Account</label>
-                  <select
+                  <AccountSelect
+                    label="From Account"
+                    accounts={accounts}
                     value={transferForm.fromAccount}
-                    onChange={(e) => setTransferForm({ ...transferForm, fromAccount: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-sm text-slate-800 focus:outline-none focus:border-indigo-400 transition-colors cursor-pointer"
-                  >
-                    {accounts.map(acc => (
-                      <option key={acc.id} value={acc.accountNumber}>{acc.name} ({acc.accountNumber})</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setTransferForm({ ...transferForm, fromAccount: val })}
+                    formatCurrency={formatCurrency}
+                  />
                   {transferForm.fromAccount && (
                     <p className="text-xs text-slate-400 pl-1">
                       Available: {formatCurrency(accounts.find(a => a.accountNumber === transferForm.fromAccount)?.balance || 0)}
@@ -425,25 +905,37 @@ export default function App() {
                   )}
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">To Account</label>
-                  <select
+                  <AccountSelect
+                    label="To Account"
+                    accounts={accounts}
                     value={transferForm.toAccount}
-                    onChange={(e) => setTransferForm({ ...transferForm, toAccount: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-sm text-slate-800 focus:outline-none focus:border-indigo-400 transition-colors cursor-pointer"
-                  >
-                    {accounts.map(acc => (
-                      <option key={acc.id} value={acc.accountNumber}>{acc.name} ({acc.accountNumber})</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setTransferForm({ ...transferForm, toAccount: val })}
+                    formatCurrency={formatCurrency}
+                  />
+                  {transferForm.toAccount && (
+                    <p className="text-xs text-slate-400 pl-1">
+                      Current Balance: {formatCurrency(accounts.find(a => a.accountNumber === transferForm.toAccount)?.balance || 0)}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Amount (USD)</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">$</span>
-                  <input type="number" step="0.01" min="0.01" placeholder="0.00" value={transferForm.amount}
-                    onChange={(e) => setTransferForm({ ...transferForm, amount: e.target.value })} required
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-7 pr-3 py-3 text-sm font-semibold text-slate-900 focus:outline-none focus:border-indigo-400 transition-colors"
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">$</span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    value={transferForm.amount}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                        setTransferForm(prev => ({ ...prev, amount: val }));
+                      }
+                    }}
+                    required
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-3 text-sm font-semibold text-slate-900 focus:outline-none focus:border-indigo-400 transition-colors"
                   />
                 </div>
               </div>
@@ -451,14 +943,14 @@ export default function App() {
                 <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Note / Reference</label>
                 <input type="text" placeholder="e.g. Monthly Savings" value={transferForm.memo}
                   onChange={(e) => setTransferForm({ ...transferForm, memo: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-sm text-slate-800 focus:outline-none focus:border-indigo-400 transition-colors"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-3 text-sm text-slate-800 focus:outline-none focus:border-indigo-400 transition-colors"
                 />
               </div>
               <div className="pt-2">
                 <button type="submit" disabled={isSubmittingTransfer}
                   className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm rounded-full transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm disabled:opacity-70"
                 >
-                  {isSubmittingTransfer ? (<><RefreshCw className="w-4 h-4 animate-spin" /><span>Processing...</span></>) : (<><Send className="w-4 h-4" /><span>Complete Transfer</span></>)}
+                  <Send className="w-4 h-4" /><span>Complete Transfer</span>
                 </button>
               </div>
             </form>
@@ -491,21 +983,29 @@ export default function App() {
         <h2 className="text-base font-semibold text-slate-900">Recent Transfers</h2>
         <div className="divide-y divide-slate-100">
           {transactions.filter(t => t.category === 'Transfer').map(tx => (
-            <div key={tx.id} className="py-4 flex items-center justify-between">
+            <div key={tx.id} onClick={() => setSelectedTransaction(tx)} className="py-4 flex items-center justify-between hover:bg-slate-50/80 px-2 rounded-lg transition-colors cursor-pointer">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                  {tx.type === 'inflow' ? <ArrowDown className="w-4 h-4 text-emerald-600" /> : <ArrowUp className="w-4 h-4 text-slate-500" />}
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${tx.status === 'pending' ? 'bg-amber-100 text-amber-600' : tx.type === 'inflow' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
+                  {tx.status === 'pending' ? <Clock className="w-4 h-4 text-amber-600 animate-pulse" /> : tx.type === 'inflow' ? <ArrowDown className="w-4 h-4 text-emerald-600" /> : <ArrowUp className="w-4 h-4 text-slate-500" />}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-900">{tx.title}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-slate-900">{tx.title}</p>
+                    {tx.status === 'pending' && (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                        Pending
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-slate-400">{tx.date}</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className={`text-sm font-semibold ${tx.type === 'inflow' ? 'text-emerald-600' : 'text-slate-800'}`}>
+                <p className={`text-sm font-semibold ${tx.status === 'pending' ? 'text-amber-700' : tx.type === 'inflow' ? 'text-emerald-600' : 'text-slate-800'}`}>
                   {tx.type === 'inflow' ? '+ ' : '- '}{showBalances ? new Intl.NumberFormat('en-US', { minimumFractionDigits: 2 }).format(tx.amount) + ' USD' : '•••••• USD'}
                 </p>
-                <p className="text-[10px] text-slate-400">Acc. {tx.accountNumber}</p>
+                <p className="text-[10px] text-slate-400 font-mono">Acc. {tx.accountNumber}</p>
               </div>
             </div>
           ))}
@@ -517,7 +1017,7 @@ export default function App() {
   // ==========================================
   // PAGE: TRANSACTIONS
   // ==========================================
-  const TransactionsPage = () => (
+  const renderTransactionsPage = () => (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="space-y-1">
@@ -576,13 +1076,21 @@ export default function App() {
                 className="py-4 flex items-center justify-between hover:bg-slate-50/80 px-2 rounded-lg transition-colors cursor-pointer group"
               >
                 <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${tx.type === 'inflow' ? 'bg-emerald-50' : 'bg-slate-100'}`}>
-                    {tx.type === 'inflow' ? <ArrowDown className="w-4 h-4 text-emerald-600" /> : <ArrowUp className="w-4 h-4 text-slate-500" />}
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${tx.status === 'pending' ? 'bg-amber-100 text-amber-700' : tx.type === 'inflow' ? 'bg-emerald-50' : 'bg-slate-100'}`}>
+                    {tx.status === 'pending' ? <Clock className="w-4 h-4 text-amber-600 animate-pulse" /> : tx.type === 'inflow' ? <ArrowDown className="w-4 h-4 text-emerald-600" /> : <ArrowUp className="w-4 h-4 text-slate-500" />}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-slate-900">{tx.title}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-slate-900">{tx.title}</p>
+                      {tx.status === 'pending' && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                          Pending
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs text-slate-400">{tx.accountNumber}</span>
+                      <span className="text-xs text-slate-400 font-mono">{tx.accountNumber}</span>
                       <span className="w-1 h-1 rounded-full bg-slate-200"></span>
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-medium">{tx.category}</span>
                     </div>
@@ -590,7 +1098,7 @@ export default function App() {
                 </div>
                 <div className="text-right flex items-center gap-3">
                   <div>
-                    <p className={`text-sm font-semibold ${tx.type === 'inflow' ? 'text-emerald-600' : 'text-slate-800'}`}>
+                    <p className={`text-sm font-semibold ${tx.status === 'pending' ? 'text-amber-700' : tx.type === 'inflow' ? 'text-emerald-600' : 'text-slate-800'}`}>
                       {tx.type === 'inflow' ? '+ ' : '- '}{showBalances ? new Intl.NumberFormat('en-US', { minimumFractionDigits: 2 }).format(tx.amount) + ' USD' : '•••••• USD'}
                     </p>
                     <p className="text-[11px] text-slate-400 mt-0.5">{tx.date}</p>
@@ -605,111 +1113,12 @@ export default function App() {
     </div>
   );
 
-  // ==========================================
-  // PAGE: SUPPORT
-  // ==========================================
-  const SupportPage = () => {
-    const [localForm, setLocalForm] = useState({ subject: '', message: '', category: 'Account Inquiry' });
-    const [submitted, setSubmitted] = useState(false);
-    const [submitting, setSubmitting] = useState(false);
-    const handleSubmit = (e) => {
-      e.preventDefault();
-      setSubmitting(true);
-      setTimeout(() => { setSubmitting(false); setSubmitted(true); showToast('Your message has been submitted. A specialist will respond within 24h.'); }, 1000);
-    };
-    return (
-      <div className="space-y-8">
-        <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">Support Center</h1>
-          <p className="text-sm text-slate-500">Get help from your dedicated private wealth team.</p>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Contact Form */}
-          <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200/80 shadow-sm p-6 space-y-6">
-            <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center"><MessageSquare className="w-5 h-5 text-indigo-600" /></div>
-              <div><h2 className="text-base font-semibold text-slate-900">Send a Message</h2><p className="text-xs text-slate-400">Our specialists respond within 2–24 business hours</p></div>
-            </div>
-            {submitted ? (
-              <div className="py-10 flex flex-col items-center gap-4 text-center">
-                <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center"><CheckCircle className="w-8 h-8 text-emerald-600" /></div>
-                <div>
-                  <p className="text-lg font-bold text-slate-900">Message Submitted</p>
-                  <p className="text-sm text-slate-500 mt-1">A private wealth specialist will respond within 24 hours.</p>
-                  <p className="text-xs text-slate-400 mt-3">Reference: <span className="font-mono text-slate-600">SR-{Date.now().toString().slice(-6)}</span></p>
-                </div>
-                <button onClick={() => setSubmitted(false)} className="mt-2 px-6 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-full hover:bg-slate-800 transition-colors cursor-pointer">Submit Another Request</button>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Category</label>
-                  <select value={localForm.category} onChange={(e) => setLocalForm({ ...localForm, category: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-sm text-slate-800 focus:outline-none focus:border-indigo-400 transition-colors cursor-pointer"
-                  >
-                    {['Account Inquiry', 'Wire Transfer Issue', 'Card Services', 'Investment Question', 'Security Concern', 'Other'].map(c => <option key={c}>{c}</option>)}
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Subject</label>
-                  <input type="text" required placeholder="Brief description of your issue..." value={localForm.subject} onChange={(e) => setLocalForm({ ...localForm, subject: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-sm text-slate-800 focus:outline-none focus:border-indigo-400 transition-colors"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Message</label>
-                  <textarea required rows={5} placeholder="Describe your concern in detail..." value={localForm.message} onChange={(e) => setLocalForm({ ...localForm, message: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-sm text-slate-800 focus:outline-none focus:border-indigo-400 transition-colors resize-none"
-                  />
-                </div>
-                <button type="submit" disabled={submitting} className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm rounded-full transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm disabled:opacity-70">
-                  {submitting ? (<><RefreshCw className="w-4 h-4 animate-spin" /><span>Sending...</span></>) : (<><Send className="w-4 h-4" /><span>Send Message</span></>)}
-                </button>
-              </form>
-            )}
-          </div>
-          {/* Sidebar */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-slate-700 px-1">Contact Channels</h3>
-            {[
-              { icon: Phone, label: 'Private Client Line', value: '1-800-HV-WEALTH', sub: 'Mon–Fri, 8AM–8PM EST', color: 'bg-emerald-50 text-emerald-600' },
-              { icon: Mail, label: 'Secure Email', value: 'wealth@hudsonvalley.com', sub: 'Response within 24h', color: 'bg-indigo-50 text-indigo-600' },
-              { icon: Headphones, label: 'Priority Support', value: 'Premier Member', sub: 'Dedicated advisor line', color: 'bg-purple-50 text-purple-600' },
-            ].map((c, i) => {
-              const IconComp = c.icon;
-              return (
-                <div key={i} className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-sm flex items-start gap-4">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${c.color}`}><IconComp className="w-5 h-5" /></div>
-                  <div className="min-w-0">
-                    <p className="text-xs text-slate-500">{c.label}</p>
-                    <p className="text-sm font-semibold text-slate-900 truncate">{c.value}</p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">{c.sub}</p>
-                  </div>
-                </div>
-              );
-            })}
-            <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-4 space-y-3">
-              <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wide">Quick Links</h4>
-              {['Report a lost card', 'Dispute a transaction', 'Update contact info', 'Security settings'].map((item, i) => (
-                <button key={i} onClick={() => showToast(`Opening: ${item}...`)} className="w-full flex items-center justify-between text-xs text-slate-600 hover:text-indigo-600 py-1.5 transition-colors cursor-pointer">
-                  <span>{item}</span><ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              ))}
-            </div>
-            <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 space-y-1.5">
-              <div className="flex items-center gap-2 text-amber-700"><AlertCircle className="w-4 h-4" /><span className="text-xs font-semibold">Emergency?</span></div>
-              <p className="text-xs text-amber-600/80 leading-relaxed">For lost/stolen cards or urgent security issues, call <strong>1-800-HV-URGENT</strong> available 24/7.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
+
 
   // ==========================================
   // PAGE: DASHBOARD
   // ==========================================
-  const DashboardPage = () => (
+  const renderDashboardPage = () => (
     <div className="space-y-8">
       <section className="space-y-1">
         <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">{getGreeting()}, Jesse</h1>
@@ -756,16 +1165,24 @@ export default function App() {
             filteredTransactions.slice(0, 5).map(tx => (
               <div key={tx.id} onClick={() => setSelectedTransaction(tx)} className="py-4 flex items-center justify-between hover:bg-slate-50/80 px-2 rounded-lg transition-colors cursor-pointer">
                 <div className="flex items-center gap-4">
-                  <div className="w-9 h-9 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
-                    {tx.type === 'inflow' ? <ArrowDown className="w-4 h-4 text-emerald-600" /> : <ArrowUp className="w-4 h-4 text-slate-600" />}
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${tx.status === 'pending' ? 'bg-amber-100 text-amber-700' : tx.type === 'inflow' ? 'bg-slate-100 text-slate-500' : 'bg-slate-100 text-slate-500'}`}>
+                    {tx.status === 'pending' ? <Clock className="w-4 h-4 text-amber-600 animate-pulse" /> : tx.type === 'inflow' ? <ArrowDown className="w-4 h-4 text-emerald-600" /> : <ArrowUp className="w-4 h-4 text-slate-600" />}
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-slate-900">{tx.title}</div>
-                    <div className="text-xs text-slate-400 mt-0.5">{tx.accountNumber}</div>
+                    <div className="flex items-center gap-2">
+                      <div className="text-sm font-medium text-slate-900">{tx.title}</div>
+                      {tx.status === 'pending' && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                          Pending
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-slate-400 mt-0.5 font-mono">{tx.accountNumber}</div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className={`text-sm font-semibold ${tx.type === 'inflow' ? 'text-emerald-600' : 'text-slate-800'}`}>
+                  <div className={`text-sm font-semibold ${tx.status === 'pending' ? 'text-amber-700' : tx.type === 'inflow' ? 'text-emerald-600' : 'text-slate-800'}`}>
                     {showBalances ? (<>{tx.type === 'inflow' ? '+ ' : '- '}{new Intl.NumberFormat('en-US', { minimumFractionDigits: 2 }).format(tx.amount)} USD</>) : '•••••••• USD'}
                   </div>
                   <div className="text-[11px] text-slate-400 mt-0.5">{tx.date}</div>
@@ -938,10 +1355,10 @@ export default function App() {
 
       {/* MAIN CONTENT — page routing */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {activeTab === 'Dashboard' && <DashboardPage />}
-        {activeTab === 'Transfers' && <TransfersPage />}
-        {activeTab === 'Transactions' && <TransactionsPage />}
-        {activeTab === 'Support' && <SupportPage />}
+        {activeTab === 'Dashboard' && renderDashboardPage()}
+        {activeTab === 'Transfers' && renderTransfersPage()}
+        {activeTab === 'Transactions' && renderTransactionsPage()}
+        {activeTab === 'Support' && <SupportPage showToast={showToast} />}
       </main>
 
       {/* MOBILE BOTTOM DOCK */}
@@ -974,7 +1391,7 @@ export default function App() {
             </div>
             <div className="text-center py-2 space-y-1">
               <span className="text-xs text-slate-400 uppercase">Amount</span>
-              <div className={`text-2xl font-bold ${selectedTransaction.type === 'inflow' ? 'text-emerald-600' : 'text-slate-900'}`}>
+              <div className={`text-2xl font-bold ${selectedTransaction.status === 'pending' ? 'text-amber-700' : selectedTransaction.type === 'inflow' ? 'text-emerald-600' : 'text-slate-900'}`}>
                 {selectedTransaction.type === 'inflow' ? '+ ' : '- '}{new Intl.NumberFormat('en-US', { minimumFractionDigits: 2 }).format(selectedTransaction.amount)} USD
               </div>
               <p className="text-sm font-medium text-slate-700">{selectedTransaction.title}</p>
@@ -983,8 +1400,35 @@ export default function App() {
               <div className="flex justify-between"><span>Account:</span><span className="text-slate-900 font-mono">{selectedTransaction.accountNumber}</span></div>
               <div className="flex justify-between"><span>Category:</span><span className="text-slate-900">{selectedTransaction.category}</span></div>
               <div className="flex justify-between"><span>Date:</span><span className="text-slate-900">{selectedTransaction.date}</span></div>
-              <div className="flex justify-between"><span>Status:</span><span className="text-emerald-600 font-semibold">Cleared</span></div>
+              <div className="flex justify-between items-center">
+                <span>Status:</span>
+                {selectedTransaction.status === 'pending' ? (
+                  <span className="inline-flex items-center gap-1.5 text-amber-700 font-semibold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    Transaction Pending
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    Cleared
+                  </span>
+                )}
+              </div>
             </div>
+            {selectedTransaction.status === 'pending' && (
+              <div className="bg-amber-50/80 border border-amber-200/80 rounded-xl p-3 text-[11px] text-amber-800 flex items-start gap-2">
+                <Clock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <span>This transfer is currently pending final clearinghouse clearance and settlement across member ledger balances.</span>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => handleReverseTransaction(selectedTransaction)}
+              className="w-full py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold text-xs rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Reverse Transaction & Restore Balance
+            </button>
             <button onClick={() => setSelectedTransaction(null)} className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs rounded-lg transition-colors cursor-pointer">Close</button>
           </div>
         </div>
